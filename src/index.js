@@ -63,7 +63,8 @@ async function main() {
     console.log('shutting down');
     stopPoller();
     server.close();
-    if (useWebhook) await tg.deleteWebhook(false).catch(() => {});
+    // Keep the webhook registered on SIGTERM: Render's free spin-down must not
+    // unregister it, or Telegram stops delivering until the next deploy.
     process.exit(0);
   };
   process.on('SIGTERM', shutdown);
