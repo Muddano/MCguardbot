@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: mcguarduzbot
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    buildCommand: npm ci --omit=dev
+    startCommand: node src/index.js
+    healthCheckPath: /healthz
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_IDS
+        value: "7667103099"
+      - key: WEBHOOK_SECRET
+        sync: false
+      - key: PANEL_SECRET
+        sync: false
+      - key: PUBLIC_URL
+        sync: false
+      - key: DATABASE_URL
+        sync: false
