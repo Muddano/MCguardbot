@@ -171,6 +171,9 @@ async function buildSqlite() {
 async function buildPg() {
   const { default: pg } = await import('pg');
   const pool = new pg.Pool({ connectionString: env.databaseUrl, max: 6 });
+  // Neon's free compute suspends when idle and severs idle clients; an unhandled
+  // pool 'error' would crash the whole process until the next deploy.
+  pool.on('error', (err) => console.error('db idle client', err.message));
   await pool.query(SCHEMA);
   return {
     kind: 'postgres',
