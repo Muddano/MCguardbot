@@ -101,7 +101,7 @@ export async function handleUpdate(update) {
     return { handled: 'left' };
   }
 
-  if (message.text && /^\/[a-zA-Z]/.test(message.text)) {
+  if (message.text && /^[/!][a-zA-Z]/.test(message.text)) {
     const handled = await handleCommand(message).catch((err) => {
       console.error('command failed', err?.message);
       return false;

@@ -194,6 +194,7 @@ async function buildPg() {
 export async function initDb() {
   if (driver) return driver;
   driver = env.databaseUrl ? await buildPg() : await buildSqlite();
+  console.log(driver.kind === 'postgres' ? 'db: postgres' : `db: sqlite ${driver.file}`);
   return driver;
 }
 

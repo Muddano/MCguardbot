@@ -21,6 +21,19 @@ const COMMANDS = [
   { command: 'lang', description: 'Til / language' },
 ];
 
+/** Telegram's API is occasionally unreachable for a second right at boot. */
+async function retry(name, fn, attempts = 3) {
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      await fn();
+      return;
+    } catch (e) {
+      if (i === attempts) console.warn(`${name} failed`, e.message);
+      else await new Promise((r) => setTimeout(r, i * 2000));
+    }
+  }
+}
+
 async function main() {
   await initDb();
   if (!env.token && !env.dryRun) console.warn('BOT_TOKEN is empty — the bot cannot reach Telegram');
@@ -28,7 +41,7 @@ async function main() {
   const app = createApp();
   const server = app.listen(env.port, () => console.log(`http://0.0.0.0:${env.port} (${baseUrl()})`));
 
-  await tg.setMyCommands(COMMANDS).catch((e) => console.warn('setMyCommands', e.message));
+  await retry('setMyCommands', () => tg.setMyCommands(COMMANDS));
 
   const useWebhook = Boolean(env.publicUrl || process.env.RENDER || process.env.FORCE_WEBHOOK);
   if (useWebhook) {

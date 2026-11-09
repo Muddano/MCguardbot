@@ -8,7 +8,10 @@ import { db, now } from '../core/db.js';
 import { isOwner } from '../config.js';
 import { panelUrl } from '../core/links.js';
 
-const CMD_RE = /^\/([a-zA-Z0-9_]+)(?:@MCguarduzbot)?(?:\s+([\s\S]*))?$/;
+// Both prefixes work: Telegram's own menu sends "/warn", while GuardBot-style
+// groups are used to typing "!warn". A command must start with a letter, so
+// "!!!" or "!123" stay ordinary chat messages.
+const CMD_RE = /^[/!]([a-zA-Z][a-zA-Z0-9_]*)(?:@MCguarduzbot)?(?:\s+([\s\S]*))?$/;
 
 export function parseCommand(text) {
   const m = String(text ?? '').match(CMD_RE);
