@@ -5,6 +5,8 @@ const raid = new Map();
 const reports = new Map();
 const captchaTimers = new Map();
 const seenUpdates = new Map();
+// Bir xabar bir marta jazolansin: chatId:messageId → timestamp
+const processedMessages = new Map();
 
 const ttl = () => env.floodCacheTtlMs;
 
@@ -88,12 +90,24 @@ export function clearCache() {
   raid.clear();
   reports.clear();
   captchaTimers.clear();
+  processedMessages.clear();
 }
 
 export function isDuplicateUpdate(id) {
   if (seenUpdates.has(id)) return true;
   seenUpdates.set(id, Date.now());
   return false;
+}
+
+/**
+ * Bir chat+message_id juftligi faqat bir marta moderatsiya qilinsin.
+ * Render.com da webhook timeout bo'lsa Telegram bir xabarni qayta yuborishi mumkin.
+ */
+export function markMessageProcessed(chatId, messageId) {
+  const key = `${chatId}:${messageId}`;
+  if (processedMessages.has(key)) return false; // allaqachon qayta ishlangan
+  processedMessages.set(key, Date.now());
+  return true; // yangi, qayta ishlansin
 }
 
 setInterval(() => {
@@ -103,4 +117,7 @@ setInterval(() => {
   prune(captchaTimers, ttl());
   const cutoff = Date.now() - 5 * 60 * 1000;
   for (const [id, ts] of seenUpdates) if (ts < cutoff) seenUpdates.delete(id);
+  // processedMessages 10 daqiqa saqlanadi
+  const msgCutoff = Date.now() - 10 * 60 * 1000;
+  for (const [k, ts] of processedMessages) if (ts < msgCutoff) processedMessages.delete(k);
 }, 60_000).unref?.();

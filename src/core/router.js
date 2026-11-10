@@ -64,6 +64,8 @@ async function handleJoinRequest(update) {
 /** Single entry point for both webhook POST bodies and long-polling updates. */
 export async function handleUpdate(update) {
   if (update.update_id && isDuplicateUpdate(update.update_id)) return { skipped: 'duplicate' };
+  // edited_message: faqat o'chirish kerak bo'lsa o'chiramiz, warn BERMAYMIZ
+  const isEdit = Boolean(update.edited_message) && !update.message;
   const message = update.message ?? update.edited_message;
 
   if (update.callback_query) {
@@ -109,7 +111,7 @@ export async function handleUpdate(update) {
     if (handled) return { handled: 'command' };
   }
 
-  const result = await moderateMessage(message, { edited: Boolean(update.edited_message) }).catch((err) => {
+  const result = await moderateMessage(message, { edited: isEdit }).catch((err) => {
     console.error('moderate failed', err?.message);
     return null;
   });

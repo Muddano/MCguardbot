@@ -5,7 +5,7 @@ import {
   capsRatio, scamScore,
 } from './filters/content.js';
 import { listRules } from './rules.js';
-import { bumpFlood } from './state.js';
+import { bumpFlood, markMessageProcessed } from './state.js';
 import { compileCustom } from './filters/profanity.js';
 import { applyAction, userMention } from './punish.js';
 import { tg, escapeHtml } from '../telegram/api.js';
@@ -135,8 +135,9 @@ export async function evaluate(message, settings, { skipFlood = false, skipGate 
     });
   };
 
-  // 1. profanity + custom regex rules. Custom panel words must fire even when
-  // the built-in profanity switch is off; push() no-ops the generic rule itself.
+  // 1. profanity + custom regex rules.
+  // MUHIM: bitta xabardan FAQAT BITTA violation (custom YOKI profanity, ikkalasi emas).
+  // Custom admin so'zlari prioritet — agar custom hit bor bo'lsa, profanity push qilinmaydi.
   if (text) {
     const dbRules = await listRules(message.chat.id).catch(() => []);
     const settingsRules = (settings.custom?.patterns ?? []).map((p) => (typeof p === 'string' ? { pattern: p } : p));
@@ -147,23 +148,26 @@ export async function evaluate(message, settings, { skipFlood = false, skipGate 
       custom,
     });
     if (!hit.clean) {
-      const adminRules = hit.hits.filter((h) => h.custom);
-      if (adminRules.length > 0) {
-        for (const h of adminRules) {
-          const action = ACTIONS.includes(h.action) ? h.action : (settings.profanity?.action || 'delete');
-          violations.push({
-            key: 'custom',
-            action,
-            seconds: settings.profanity?.muteSeconds ?? 3600,
-            banSeconds: settings.profanity?.banSeconds ?? 0,
-            warnCount: settings.profanity?.warnCount ?? 1,
-            delete: action !== 'none',
-            detail: h.label,
-          });
-        }
-      }
-      if (hit.hits.some((h) => !h.custom)) {
-        push('profanity', settings.profanity, { detail: hit.hits.filter((h) => !h.custom).map((h) => h.label).join(', ') });
+      const customHits = hit.hits.filter((h) => h.custom);
+      const builtinHits = hit.hits.filter((h) => !h.custom);
+
+      if (customHits.length > 0) {
+        // Custom (admin qo'shgan) so'z topildi — FAQAT BITTA violation, eng og'ir actionni oladi
+        const actions = customHits.map((h) => ACTIONS.includes(h.action) ? h.action : (settings.profanity?.action || 'warn'));
+        const worstAction = actions.reduce((a, b) => (ACTION_ORDER[a] ?? 1) >= (ACTION_ORDER[b] ?? 1) ? a : b);
+        violations.push({
+          key: 'custom',
+          action: worstAction,
+          seconds: settings.profanity?.muteSeconds ?? 3600,
+          banSeconds: settings.profanity?.banSeconds ?? 0,
+          warnCount: 1, // har doim 1 — bitta xabar = bitta warn
+          delete: worstAction !== 'none',
+          detail: customHits.map((h) => h.label).join(', '),
+        });
+        // Custom hit bor — built-in profanity push qilinmaydi (duplikat warn oldini olish)
+      } else if (builtinHits.length > 0) {
+        // Faqat built-in profanity (custom yo'q)
+        push('profanity', settings.profanity, { detail: builtinHits.map((h) => h.label).join(', ') });
       }
     }
   }
@@ -263,10 +267,20 @@ function pickWorst(violations) {
  * Full pipeline: evaluate, then punish once (the strictest rule wins).
  * Returns null when the message is clean or the sender is protected.
  */
-export async function moderateMessage(message, { force = false } = {}) {
+export async function moderateMessage(message, { force = false, edited = false } = {}) {
   const settings = await getSettings(message.chat.id);
   if (!settings.enabled) return null;
   if (message.chat.type === 'private' && !settings.profanity?.private) return null;
+
+  // Bir xabar bir marta jazolansin — Telegram webhook retry va edited_message uchun
+  // Edited xabarlarda warn berilmaydi, faqat o'chiriladi (delete action uchun)
+  if (message.message_id && !force) {
+    const isNew = markMessageProcessed(message.chat.id, message.message_id);
+    if (!isNew) {
+      // Allaqachon qayta ishlangan — faqat o'chirish kerak bo'lsa o'chiramiz
+      return null;
+    }
+  }
 
   const { violations } = await evaluate(message, settings);
   if (!violations.length) return null;
@@ -296,7 +310,16 @@ export async function moderateMessage(message, { force = false } = {}) {
     return null;
   }
 
-  const worst = pickWorst(violations);
+  // Edited xabarlarda warn/mute/ban berilmaydi — faqat o'chiriladi
+  let effectiveViolations = violations;
+  if (edited) {
+    effectiveViolations = violations.map((v) => ({
+      ...v,
+      action: v.delete ? 'delete' : 'none',
+    }));
+  }
+
+  const worst = pickWorst(effectiveViolations);
   if (!worst || (!force && worst.action === 'none' && !worst.delete)) return null;
 
   const lang = settings.lang;
@@ -323,14 +346,9 @@ export async function moderateMessage(message, { force = false } = {}) {
     return { violations, deleted: true, action: worst.action };
   }
 
+  // FAQAT BITTA applyAction chaqiriladi — warnCount loop o'chirildi
   const rule = { action: worst.action, muteSeconds: worst.seconds, banSeconds: worst.banSeconds };
-  if (worst.action === 'warn') {
-    for (let i = 0; i < Math.max(1, worst.warnCount || 1); i++) {
-      await applyAction(message.chat.id, author, rule, { reason, by: null });
-    }
-  } else {
-    await applyAction(message.chat.id, author, rule, { reason, by: null });
-  }
+  await applyAction(message.chat.id, author, rule, { reason, by: null });
 
   return { violations, deleted: worst.delete, action: worst.action, reason };
 }
