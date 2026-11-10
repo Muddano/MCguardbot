@@ -3,6 +3,9 @@ import { SECTIONS, getIn } from './schema.js';
 import { t } from '../core/i18n.js';
 import { panelUrl } from '../core/links.js';
 
+// Bump when public assets change so cached copies are bypassed immediately.
+const ASSET_V = '2';
+
 export const esc = (v) =>
   String(v ?? '')
     .replace(/&/g, '&amp;')
@@ -45,7 +48,7 @@ export function layout({ title, body, user, lang = 'uz', active = '', chatId = '
     <a class="back" href="/">← ${esc(backLabel)}</a>
     <nav class="sidenav">${TABS.map(
       ([key]) =>
-        `<a class="${key === active ? 'on' : ''}" href="/g/${esc(chatId)}?tab=${key}">${esc(tabLabel(key, lang))}</a>`,
+        `<a class="${key === active ? 'on' : ''}" href="/g/${esc(chatId)}?tab=${key}" target="_blank" rel="noopener">${esc(tabLabel(key, lang))}</a>`,
     ).join('')}</nav>
   </aside>
   <main class="content">${body}</main>
@@ -58,7 +61,7 @@ export function layout({ title, body, user, lang = 'uz', active = '', chatId = '
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)} · MC Guard</title>
 <link rel="icon" href="/assets/MCGuardUzBot.ico">
-<link rel="stylesheet" href="/assets/styles.css">
+<link rel="stylesheet" href="/assets/styles.css?v=${ASSET_V}">
 </head>
 <body class="${user ? 'authed' : 'guest'}">
 <header class="top">
@@ -77,7 +80,7 @@ ${main}
   <span>MC Guard · @${esc(env.ownerUsername)}</span>
   <span>Render + PostgreSQL</span>
 </footer>
-<script src="/assets/app.js" defer></script>
+<script src="/assets/app.js?v=${ASSET_V}" defer></script>
 </body>
 </html>`;
 }
