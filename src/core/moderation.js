@@ -135,8 +135,9 @@ export async function evaluate(message, settings, { skipFlood = false, skipGate 
     });
   };
 
-  // 1. profanity + custom regex rules
-  if (settings.profanity?.on && text) {
+  // 1. profanity + custom regex rules. Custom panel words must fire even when
+  // the built-in profanity switch is off; push() no-ops the generic rule itself.
+  if (text) {
     const custom = compileCustom(await listRules(message.chat.id).catch(() => []));
     const hit = detect(text, {
       langs: settings.profanity.langs,

@@ -11,6 +11,7 @@ export const SECTIONS = [
     title: L('Asosiy', 'Основные', 'General'),
     fields: [
       { path: 'enabled', type: 'bool', label: L('Bot yoqilgan', 'Бот включён', 'Bot enabled') },
+      { path: 'adminRights.adminsAreExempt', type: 'bool', label: L('Adminlar istisno (jazolanmasin)', 'Админы не наказываются', 'Admins exempt from punishment') },
       { path: 'lang', type: 'select', options: LANGS, label: L('Til', 'Язык', 'Language') },
       { path: 'rules.text', type: 'textarea', label: L('Qoidalar', 'Правила', 'Rules text') },
       { path: 'logs.on', type: 'bool', label: L('Log kanali', 'Лог-канал', 'Log channel') },
