@@ -44,8 +44,10 @@ export function compileCustom(list = []) {
     const src = typeof item === 'string' ? item : item?.pattern;
     if (!src) continue;
     try {
+      const isPlain = !/[\\^$*+?.()|[\]{}]/.test(src.trim());
+      const pattern = isPlain ? `\\b${src.trim()}\\b` : src;
       out.push({
-        re: new RegExp(src, 'i'),
+        re: new RegExp(pattern, 'i'),
         label: item?.label || src,
         action: item?.action || 'delete',
         severity: item?.severity ?? 2,
@@ -92,7 +94,7 @@ export function detect(text, opts = {}) {
     // Admin-written patterns are matched against the raw text as well, so a
     // Cyrillic rule still works even though the engine normalizes to latin.
     if (rule.re.test(String(text ?? '')) || rule.re.test(spaced) || tokens.some((t) => rule.re.test(t))) {
-      hits.push({ label: rule.label, severity: rule.severity, lang: 'custom', matched: '', action: rule.action, custom: true });
+      hits.push({ label: rule.label, severity: Math.max(rule.severity, minSeverity), lang: 'custom', matched: '', action: rule.action, custom: true });
     }
   }
 

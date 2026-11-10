@@ -281,24 +281,218 @@ export async function handleCommand(message) {
     }
     case 'filter':
     case 'word': {
-      const [sub, ...rest] = args.split(/\s+/);
+      const parts = args.split(/\s+/).filter(Boolean);
+      const sub = (parts[0] || '').toLowerCase();
       if (sub === 'add') {
-        await addRule(chatId, { pattern: rest.join(' '), action: 'warn' });
-        await tg.sendMessage(chatId, t(lang, 'settings_saved'));
-      } else if (sub === 'del') {
-        await removeRule(chatId, rest[0]);
-        await tg.sendMessage(chatId, t(lang, 'settings_saved'));
+        const last = (parts[parts.length - 1] || '').toLowerCase();
+        let action = 'delete';
+        let patternWords = parts.slice(1);
+        if (['delete', 'warn', 'mute', 'kick', 'ban'].includes(last) && parts.length > 2) {
+          action = last;
+          patternWords = parts.slice(1, -1);
+        }
+        const pat = patternWords.join(' ').trim();
+        if (!pat) {
+          await tg.sendMessage(chatId, '❌ So‘zni kiriting:\nMisol: <code>/filter add zb</code> yoki <code>/filter add zb ban</code>');
+          return true;
+        }
+        await addRule(chatId, { pattern: pat, action });
+        await tg.sendMessage(chatId, `✅ Maxsus filtrga qo‘shildi:\n• So‘z: <b>${escapeHtml(pat)}</b>\n• Jazo: <b>${action}</b>`);
+      } else if (sub === 'del' || sub === 'remove') {
+        const target = parts.slice(1).join(' ').trim();
+        if (!target) {
+          await tg.sendMessage(chatId, '❌ O‘chirish uchun so‘zni kiriting:\nMisol: <code>/filter del zb</code>');
+          return true;
+        }
+        await removeRule(chatId, target);
+        await tg.sendMessage(chatId, `✅ Maxsus filtrdan o‘chirildi: <b>${escapeHtml(target)}</b>`);
       } else {
         const rows = await listRules(chatId);
-        await tg.sendMessage(chatId, rows.map((r) => `<code>${r.id.slice(0, 8)}</code> ${escapeHtml(r.pattern)} → ${r.action}`).join('\n') || '-');
+        const text = rows.length
+          ? rows.map((r) => `• <b>${escapeHtml(r.pattern)}</b> → <code>${r.action}</code>`).join('\n')
+          : 'Hozircha maxsus so‘zlar qo‘shilmagan.';
+        await tg.sendMessage(
+          chatId,
+          `📝 <b>Maxsus taqiqlangan so‘zlar:</b>\n\n${text}\n\n` +
+            `➕ Qo‘shish: <code>/filter add so‘z [delete|warn|mute|ban]</code>\n` +
+            `➖ O‘chirish: <code>/filter del so‘z</code>`,
+        );
       }
       return true;
     }
+    case 'warnlimit':
+    case 'limit': {
+      const n = parseInt(args, 10);
+      if (!n || n < 1 || n > 20) {
+        await tg.sendMessage(chatId, `ℹ️ Ogohlantirish chegarasini kiriting (1-20 oralig‘ida):\nMisol: <code>/warnlimit 3</code> yoki <code>/warnlimit 5</code>\nHozirgi limit: <b>${settings.warns?.limit ?? 3}</b> ta`);
+        return true;
+      }
+      await patchSettings(chatId, { warns: { limit: n } });
+      await tg.sendMessage(chatId, `✅ Ogohlantirishlar chegarasi <b>${n}</b> taga o‘rnatildi!`);
+      return true;
+    }
+    case 'profanity':
+    case 'haqorat': {
+      const act = (args || '').toLowerCase().trim();
+      if (!act) {
+        await tg.sendMessage(
+          chatId,
+          `ℹ️ Haqorat filtri: <b>${settings.profanity?.on ? settings.profanity?.action : 'o‘chiq'}</b>\n\n` +
+            `O‘zgartirish buyruqlari:\n` +
+            `• <code>/profanity delete</code> — xabarni o‘chirish\n` +
+            `• <code>/profanity warn</code> — ogohlantirish berish\n` +
+            `• <code>/profanity mute</code> — ovozini o‘chirish (mute)\n` +
+            `• <code>/profanity ban</code> — guruhdan haydash (ban)\n` +
+            `• <code>/profanity off</code> — filtrni o‘chirish`,
+        );
+        return true;
+      }
+      if (act === 'off') {
+        await patchSettings(chatId, { profanity: { on: false } });
+        await tg.sendMessage(chatId, '✅ Haqorat filtri o‘chirildi ❌');
+        return true;
+      }
+      if (['delete', 'warn', 'mute', 'kick', 'ban'].includes(act)) {
+        await patchSettings(chatId, { profanity: { on: true, action: act, delete: true } });
+        await tg.sendMessage(chatId, `✅ Haqorat filtri yangilandi, jazo: <b>${act}</b>`);
+        return true;
+      }
+      await tg.sendMessage(chatId, '❌ Noto‘g‘ri parametr. Tanlang: <code>delete</code>, <code>warn</code>, <code>mute</code>, <code>ban</code>, <code>off</code>');
+      return true;
+    }
+    case 'links':
+    case 'link':
+    case 'reklama': {
+      const act = (args || '').toLowerCase().trim();
+      if (!act) {
+        await tg.sendMessage(
+          chatId,
+          `ℹ️ Havola va reklama filtri: <b>${settings.links?.on ? settings.links?.action : 'o‘chiq'}</b>\n\n` +
+            `Tanlang: <code>/links delete</code>, <code>/links warn</code>, <code>/links mute</code>, <code>/links ban</code>, <code>/links off</code>`,
+        );
+        return true;
+      }
+      if (act === 'off') {
+        await patchSettings(chatId, { links: { on: false }, ads: { on: false } });
+        await tg.sendMessage(chatId, '✅ Havola va reklama filtri o‘chirildi ❌');
+        return true;
+      }
+      if (['delete', 'warn', 'mute', 'kick', 'ban'].includes(act)) {
+        await patchSettings(chatId, { links: { on: true, action: act, delete: true }, ads: { on: true, action: act, delete: true } });
+        await tg.sendMessage(chatId, `✅ Havola va reklama filtri: <b>${act}</b> ga o‘rnatildi!`);
+        return true;
+      }
+      return true;
+    }
+    case 'antiflood':
+    case 'flood': {
+      const act = (args || '').toLowerCase().trim();
+      if (act === 'off') {
+        await patchSettings(chatId, { antiflood: { on: false } });
+        await tg.sendMessage(chatId, '✅ Anti-flood filtri o‘chirildi ❌');
+        return true;
+      }
+      if (['mute', 'delete', 'warn', 'kick', 'ban'].includes(act)) {
+        await patchSettings(chatId, { antiflood: { on: true, action: act } });
+        await tg.sendMessage(chatId, `✅ Anti-flood filtri yoqildi, jazo: <b>${act}</b>`);
+        return true;
+      }
+      await tg.sendMessage(chatId, `ℹ️ Anti-flood holati: <b>${settings.antiflood?.on ? settings.antiflood?.action : 'o‘chiq'}</b>\nTanlang: <code>/antiflood mute</code>, <code>/antiflood delete</code>, <code>/antiflood off</code>`);
+      return true;
+    }
+    case 'mutetime':
+    case 'mutemuddati': {
+      const parsed = parseDuration(args);
+      const sec = parsed ?? (Number(args) > 0 ? Number(args) : null);
+      if (!sec) {
+        await tg.sendMessage(chatId, `ℹ️ Mute muddatini kiriting:\nMisol: <code>/mutetime 10m</code>, <code>/mutetime 1h</code>, <code>/mutetime 1d</code>\nHozirgi muddat: <b>${formatDuration(settings.profanity?.muteSeconds ?? 3600, lang)}</b>`);
+        return true;
+      }
+      await patchSettings(chatId, {
+        profanity: { muteSeconds: sec },
+        links: { muteSeconds: sec },
+        antiflood: { muteSeconds: sec },
+      });
+      await tg.sendMessage(chatId, `✅ Mute qilish muddati <b>${formatDuration(sec, lang)}</b> ga o‘rnatildi!`);
+      return true;
+    }
+    case 'bantime':
+    case 'banmuddati': {
+      let sec = 0;
+      if (args === '0' || args === 'abadiy' || args === 'perm' || args === 'permanent') {
+        sec = 0;
+      } else {
+        const parsed = parseDuration(args);
+        sec = parsed ?? (Number(args) >= 0 ? Number(args) : null);
+      }
+      if (sec === null) {
+        await tg.sendMessage(chatId, `ℹ️ Ban muddatini kiriting:\nMisol: <code>/bantime 1d</code>, <code>/bantime 7d</code>, <code>/bantime 0</code> (0 = abadiy)\nHozirgi muddat: <b>${settings.warns?.banSeconds ? formatDuration(settings.warns.banSeconds, lang) : 'Abadiy'}</b>`);
+        return true;
+      }
+      await patchSettings(chatId, {
+        warns: { banSeconds: sec },
+        profanity: { banSeconds: sec },
+      });
+      await tg.sendMessage(chatId, `✅ Ban muddati: <b>${sec === 0 ? 'Abadiy' : formatDuration(sec, lang)}</b> ga o‘rnatildi!`);
+      return true;
+    }
+    case 'admins':
+    case 'adminlar': {
+      const v = (args || '').toLowerCase().trim();
+      if (v === 'off' || v === 'yoq' || v === 'tekshir') {
+        await patchSettings(chatId, { adminRights: { adminsAreExempt: false } });
+        await tg.sendMessage(chatId, '✅ Adminlar ham filtrdan o‘tkaziladi (istisno o‘chirildi)!');
+        return true;
+      }
+      if (v === 'on' || v === 'ha') {
+        await patchSettings(chatId, { adminRights: { adminsAreExempt: true } });
+        await tg.sendMessage(chatId, '✅ Adminlar himoyalandi (filtr adminlarga tegmaydi)!');
+        return true;
+      }
+      await tg.sendMessage(chatId, `ℹ️ Hozirgi holat: <b>${settings.adminRights?.adminsAreExempt ? 'Adminlar himoyalangan (on)' : 'Adminlar ham tekshiriladi (off)'}</b>\nO‘zgartirish: <code>/admins on</code> yoki <code>/admins off</code>`);
+      return true;
+    }
     case 'settings':
-    case 'panel': {
+    case 'panel':
+    case 'sozlamalar': {
       await touchChat(chatId, { title: message.chat.title ?? '', type: message.chat.type });
-      await tg.sendMessage(chatId, `⚙️ ${escapeHtml(message.chat.title ?? '')}\n${panelUrl(chatId)}`, {
-        reply_markup: { inline_keyboard: [[{ text: t(lang, 'open_panel'), url: panelUrl(chatId) }]] },
+      const p = settings.profanity ?? {};
+      const w = settings.warns ?? {};
+      const l = settings.links ?? {};
+      const text =
+        `⚙️ <b>${escapeHtml(message.chat.title ?? 'Guruh')} sozlamalari:</b>\n\n` +
+        `🛡 <b>Haqorat filtri:</b> ${p.on ? `Yoqilgan (${p.action})` : 'O‘chiq'}\n` +
+        `⚠️ <b>Ogohlantirish limiti:</b> ${w.limit ?? 3} ta\n` +
+        `🚫 <b>Ban muddati:</b> ${w.banSeconds ? formatDuration(w.banSeconds, lang) : 'Abadiy'}\n` +
+        `🔇 <b>Mute muddati:</b> ${formatDuration(p.muteSeconds ?? 3600, lang)}\n` +
+        `🔗 <b>Havolalar/Reklama:</b> ${l.on ? `Yoqilgan (${l.action})` : 'O‘chiq'}\n` +
+        `🌊 <b>Anti-flood:</b> ${settings.antiflood?.on ? `Yoqilgan (${settings.antiflood?.action})` : 'O‘chiq'}\n` +
+        `👮 <b>Adminlar istisnosi:</b> ${settings.adminRights?.adminsAreExempt ? 'Yoqilgan' : 'O‘chiq'}\n\n` +
+        `<b>Tezkor buyruqlar:</b>\n` +
+        `• <code>/warnlimit 3</code> — limitni o‘zgartirish (3, 5, ...)\n` +
+        `• <code>/profanity delete|warn|mute|ban|off</code> — haqorat jazosi\n` +
+        `• <code>/links delete|warn|mute|off</code> — reklama/havola jazosi\n` +
+        `• <code>/mutetime 10m|1h|1d</code> — mute qilish vaqti\n` +
+        `• <code>/bantime 1d|7d|0</code> — ban qilish vaqti (0 = abadiy)\n` +
+        `• <code>/filter add &lt;so‘z&gt; [jazo]</code> — yangi so‘z qo‘shish\n` +
+        `• <code>/filter del &lt;so‘z&gt;</code> — so‘zni o‘chirish\n` +
+        `• <code>/filter</code> — maxsus so‘zlar ro‘yxati\n` +
+        `• <code>/admins on|off</code> — adminlarni tekshirish/tekshirmaslik`;
+
+      await tg.sendMessage(chatId, text, {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: `🛡 Haqorat: ${p.action || 'warn'}`, callback_data: `cfg:${chatId}:profanity:toggle` },
+              { text: `⚠️ Limit: ${w.limit ?? 3}`, callback_data: `cfg:${chatId}:warnlimit:toggle` },
+            ],
+            [
+              { text: `🔗 Havola: ${l.on ? 'Yoqiq' : 'O‘chiq'}`, callback_data: `cfg:${chatId}:links:toggle` },
+              { text: `👮 Admin: ${settings.adminRights?.adminsAreExempt ? 'Himoyalangan' : 'Tekshiriladi'}`, callback_data: `cfg:${chatId}:admins:toggle` },
+            ],
+            [{ text: `🌐 Veb-panelni ochish`, url: panelUrl(chatId) }],
+          ],
+        },
       });
       return true;
     }

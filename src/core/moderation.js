@@ -138,28 +138,32 @@ export async function evaluate(message, settings, { skipFlood = false, skipGate 
   // 1. profanity + custom regex rules. Custom panel words must fire even when
   // the built-in profanity switch is off; push() no-ops the generic rule itself.
   if (text) {
-    const custom = compileCustom(await listRules(message.chat.id).catch(() => []));
+    const dbRules = await listRules(message.chat.id).catch(() => []);
+    const settingsRules = (settings.custom?.patterns ?? []).map((p) => (typeof p === 'string' ? { pattern: p } : p));
+    const custom = compileCustom([...dbRules, ...settingsRules]);
     const hit = detect(text, {
       langs: settings.profanity.langs,
       minSeverity: settings.profanity.minSeverity ?? 1,
       custom,
     });
     if (!hit.clean) {
-      push('profanity', settings.profanity, { detail: hit.hits.map((h) => h.label).join(', ') });
-      // A panel rule carries its own punishment; it must outrank the generic
-      // profanity action, otherwise "ban this phrase" silently degrades to a warn.
       const adminRules = hit.hits.filter((h) => h.custom);
-      for (const h of adminRules) {
-        const action = ACTIONS.includes(h.action) ? h.action : settings.profanity.action;
-        violations.push({
-          key: 'custom',
-          action,
-          seconds: settings.profanity.muteSeconds ?? 0,
-          banSeconds: settings.profanity.banSeconds ?? 0,
-          warnCount: settings.profanity.warnCount ?? 1,
-          delete: action !== 'none',
-          detail: h.label,
-        });
+      if (adminRules.length > 0) {
+        for (const h of adminRules) {
+          const action = ACTIONS.includes(h.action) ? h.action : (settings.profanity?.action || 'delete');
+          violations.push({
+            key: 'custom',
+            action,
+            seconds: settings.profanity?.muteSeconds ?? 3600,
+            banSeconds: settings.profanity?.banSeconds ?? 0,
+            warnCount: settings.profanity?.warnCount ?? 1,
+            delete: action !== 'none',
+            detail: h.label,
+          });
+        }
+      }
+      if (hit.hits.some((h) => !h.custom)) {
+        push('profanity', settings.profanity, { detail: hit.hits.filter((h) => !h.custom).map((h) => h.label).join(', ') });
       }
     }
   }

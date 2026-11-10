@@ -5,6 +5,7 @@ import { checkSubscription, markVerified, getCaptcha, bumpTries, dropCaptchaRow,
 import { unmute, warn, ban, kick, mute } from '../core/punish.js';
 import { addReport, clearReport } from '../core/state.js';
 import { isOwner } from '../config.js';
+import { panelUrl } from '../core/links.js';
 
 const parse = (data) => String(data ?? '').split(':');
 
@@ -33,6 +34,61 @@ export async function handleCallback(query) {
   try {
     if (kind === 'noop') {
       await answer();
+      return;
+    }
+
+    if (kind === 'cfg') {
+      const staff = await isStaff(chat, query.from.id);
+      if (!staff) {
+        await answer('❌ Siz admin emassiz!', true);
+        return;
+      }
+      const field = String(userId);
+      const current = await getSettings(chat);
+      let patch = {};
+      let alertMsg = 'Sozlama yangilandi!';
+
+      if (field === 'profanity') {
+        const order = ['warn', 'delete', 'mute', 'ban'];
+        const curAct = current.profanity?.action || 'warn';
+        const nextAct = order[(order.indexOf(curAct) + 1) % order.length];
+        patch = { profanity: { on: true, action: nextAct, delete: true } };
+        alertMsg = `Haqorat jazosi: ${nextAct}`;
+      } else if (field === 'warnlimit') {
+        const limits = [3, 5, 2];
+        const curLimit = current.warns?.limit ?? 3;
+        const nextLimit = limits[(limits.indexOf(curLimit) + 1) % limits.length];
+        patch = { warns: { limit: nextLimit } };
+        alertMsg = `Ogohlantirish limiti: ${nextLimit} ta`;
+      } else if (field === 'links') {
+        const nextOn = !current.links?.on;
+        patch = { links: { on: nextOn, action: current.links?.action || 'warn' }, ads: { on: nextOn } };
+        alertMsg = `Havola filtri: ${nextOn ? 'Yoqildi' : 'O‘chirildi'}`;
+      } else if (field === 'admins') {
+        const nextExempt = !current.adminRights?.adminsAreExempt;
+        patch = { adminRights: { adminsAreExempt: nextExempt } };
+        alertMsg = `Adminlar: ${nextExempt ? 'Himoyalangan' : 'Tekshiriladi'}`;
+      }
+
+      const updated = await patchSettings(chat, patch);
+      await answer(alertMsg);
+
+      const p = updated.profanity ?? {};
+      const w = updated.warns ?? {};
+      const l = updated.links ?? {};
+      await tg.editMessageReplyMarkup(query.message.chat.id, query.message.message_id, {
+        inline_keyboard: [
+          [
+            { text: `🛡 Haqorat: ${p.action || 'warn'}`, callback_data: `cfg:${chat}:profanity:toggle` },
+            { text: `⚠️ Limit: ${w.limit ?? 3}`, callback_data: `cfg:${chat}:warnlimit:toggle` },
+          ],
+          [
+            { text: `🔗 Havola: ${l.on ? 'Yoqiq' : 'O‘chiq'}`, callback_data: `cfg:${chat}:links:toggle` },
+            { text: `👮 Admin: ${updated.adminRights?.adminsAreExempt ? 'Himoyalangan' : 'Tekshiriladi'}`, callback_data: `cfg:${chat}:admins:toggle` },
+          ],
+          [{ text: `🌐 Veb-panelni ochish`, url: panelUrl(chat) }],
+        ],
+      }).catch(() => {});
       return;
     }
 

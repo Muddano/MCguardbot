@@ -92,6 +92,12 @@
     { "p": "\\b(?:on[ae]ng|on[ae]ngni|en[ae]ng|en[ae]ngni|en[ae]gni|ot[ae]ng|ot[ae]ngni|op[ae]ng|op[ae]ngni|singling|singlingni)\\s+(?:[a-z]+\\s+)?(?:s[iye]?k|am|ko['`]?t|q[o0]['`]?t|yeb|og['`]?z)[a-z]{0,6}\\b", "label": "oila haqorati", "severity": 3, "mode": "word" },
     { "p": "\\bpadaring(?:ga|ni)?\\s+(?:lanat|la'nat)\\b", "label": "padaringga lanat", "severity": 2, "mode": "word" },
 
+    { "p": "\\bz[._-]?b[a-z]{0,3}|\\bz\\s+b\\b|\\bzbs\\b", "label": "zaebal", "severity": 2, "mode": "word" },
+    { "p": "\\b(?:nax|nah|px|pax)\\b", "label": "naxuy", "severity": 2, "mode": "word" },
+    { "p": "\\b(?:bl|blya|blyat)\\b", "label": "blyad", "severity": 2, "mode": "word" },
+    { "p": "\\b(?:qtg|qtgm)\\b", "label": "qo'toq", "severity": 3, "mode": "word" },
+    { "p": "\\b(?:ebt|ebal|yebal)\\b", "label": "ebat", "severity": 3, "mode": "word" },
+    { "p": "\\b(?:gnd|gndn)\\b", "label": "gandon", "severity": 3, "mode": "word" },
     { "p": "\\bsuk(?:a|i|u|oy|am|ax|alar|asilar|ayam|asila)\\b", "label": "suka", "severity": 2, "mode": "word" },
     { "p": "\\bbl[ya][adtz][a-z]{0,4}\\b", "label": "blyad", "severity": 2, "mode": "word" },
     { "p": "\\b(?:na|po|pa)[hx][uy][a-z]{0,4}\\b", "label": "naxuy", "severity": 3, "mode": "word" },

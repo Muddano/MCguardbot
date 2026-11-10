@@ -16,8 +16,12 @@ export async function addRule(chatId, { pattern, action = 'delete', note = '' })
   return row;
 }
 
-export async function removeRule(chatId, ruleId) {
-  await db().run('DELETE FROM filters WHERE chat_id = ? AND id = ?', [String(chatId), ruleId]);
+export async function removeRule(chatId, ruleIdOrPattern) {
+  await db().run('DELETE FROM filters WHERE chat_id = ? AND (id = ? OR pattern = ?)', [
+    String(chatId),
+    String(ruleIdOrPattern),
+    String(ruleIdOrPattern),
+  ]);
 }
 
 export async function clearRules(chatId) {

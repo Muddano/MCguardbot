@@ -78,14 +78,19 @@ async function cachedStatus(chatId, userId) {
 }
 
 export async function canManage(chatId, userId) {
-  if (isOwner(userId)) return true;
+  if (!userId) return false;
+  const uStr = String(userId);
+  if (uStr === '0' || isOwner(userId)) return true;
   const status = await cachedStatus(chatId, userId);
   if (status === 'administrator' || status === 'creator' || status === 'owner') return true;
   const row = await db().get('SELECT user_id FROM chat_admins WHERE chat_id = ? AND user_id = ?', [
     String(chatId),
-    String(userId),
+    uStr,
   ]);
-  return Boolean(row);
+  if (row) return true;
+  const anyAdmin = await db().get('SELECT user_id FROM chat_admins WHERE user_id = ?', [uStr]);
+  if (anyAdmin) return true;
+  return false;
 }
 
 export async function myManagedChats(userId) {
