@@ -38,12 +38,19 @@ const ACTION_ICON = {
 const USER_ACTIONS = Object.keys(ACTION_ICON);
 
 export function layout({ title, body, user, lang = 'uz', active = '', chatId = '' }) {
-  const nav = chatId
-    ? TABS.map(
-        ([key, , , ]) =>
-          `<a class="tab ${key === active ? 'on' : ''}" href="/g/${esc(chatId)}?tab=${key}">${esc(tabLabel(key, lang))}</a>`,
-      ).join('')
-    : '';
+  const backLabel = lang === 'ru' ? 'Группы' : lang === 'en' ? 'Groups' : 'Guruhlar';
+  const main = chatId
+    ? `<div class="shell">
+  <aside class="side">
+    <a class="back" href="/">← ${esc(backLabel)}</a>
+    <nav class="sidenav">${TABS.map(
+      ([key]) =>
+        `<a class="${key === active ? 'on' : ''}" href="/g/${esc(chatId)}?tab=${key}">${esc(tabLabel(key, lang))}</a>`,
+    ).join('')}</nav>
+  </aside>
+  <main class="content">${body}</main>
+</div>`
+    : `<main>${body}</main>`;
   return `<!doctype html>
 <html lang="${esc(lang)}">
 <head>
@@ -65,8 +72,7 @@ export function layout({ title, body, user, lang = 'uz', active = '', chatId = '
       : `<a class="ghost" href="/login">Login</a>`
   }</nav>
 </header>
-${nav ? `<div class="tabs">${nav}</div>` : ''}
-<main>${body}</main>
+${main}
 <footer>
   <span>MC Guard · @${esc(env.ownerUsername)}</span>
   <span>Render + PostgreSQL</span>
@@ -122,13 +128,20 @@ export function dashboardPage({ user, chats, lang, totals }) {
     : `<p class="empty">${lang === 'ru' ? 'Групп пока нет. Добавьте бота админом.' : lang === 'en' ? 'No groups yet — add the bot as admin.' : "Guruhlar hali yo'q. Botni administrator qilib qo'shing."}</p>`;
 
   const body = `
-<section class="stats">
-  <div><b>${totals.chats}</b><span>${lang === 'ru' ? 'групп' : lang === 'en' ? 'groups' : 'guruh'}</span></div>
-  <div><b>${totals.members}</b><span>${lang === 'ru' ? 'участников' : lang === 'en' ? 'members' : 'a’zo'}</span></div>
-  <div><b>${totals.warns}</b><span>${lang === 'ru' ? 'предупреждений' : lang === 'en' ? 'warnings' : 'ogohlantirish'}</span></div>
-  <div><b>${totals.bans}</b><span>${lang === 'ru' ? 'банов' : lang === 'en' ? 'bans' : 'ban'}</span></div>
-</section>
-<section class="grid">${cards}</section>`;
+<div class="dashwrap">
+  <div class="dashmain">
+    <section class="stats">
+      <div><b>${totals.chats}</b><span>${lang === 'ru' ? 'групп' : lang === 'en' ? 'groups' : 'guruh'}</span></div>
+      <div><b>${totals.members}</b><span>${lang === 'ru' ? 'участников' : lang === 'en' ? 'members' : 'a’zo'}</span></div>
+      <div><b>${totals.warns}</b><span>${lang === 'ru' ? 'предупреждений' : lang === 'en' ? 'warnings' : 'ogohlantirish'}</span></div>
+      <div><b>${totals.bans}</b><span>${lang === 'ru' ? 'банов' : lang === 'en' ? 'bans' : 'ban'}</span></div>
+    </section>
+    <section class="grid">${cards}</section>
+  </div>
+  <div class="hero-art dash-art" aria-hidden="true">
+    <div class="cube c1"></div><div class="cube c2"></div><div class="cube c3"></div>
+  </div>
+</div>`;
   return layout({ title: 'Panel', body, user, lang });
 }
 
@@ -248,8 +261,8 @@ export function groupPage({ chat, settings, user, lang, tab, data }) {
   }
 
   return layout({
-    title: chat.title || String(chat.chat_id),
-    body: `<div class="chathead"><h1>${esc(chat.title || chat.chat_id)}</h1><code>${esc(chat.chat_id)}</code></div>${body}`,
+    title: `${tabLabel(tab || 'settings', lang)} · ${chat.title || chat.chat_id}`,
+    body: `<div class="chathead"><h1>${esc(tabLabel(tab || 'settings', lang))}</h1><div class="sub">${esc(chat.title || chat.chat_id)} · <code>${esc(chat.chat_id)}</code></div></div>${body}`,
     user,
     lang,
     active: tab || 'settings',
