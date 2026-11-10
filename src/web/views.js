@@ -48,7 +48,7 @@ export function layout({ title, body, user, lang = 'uz', active = '', chatId = '
     <a class="back" href="/">← ${esc(backLabel)}</a>
     <nav class="sidenav">${TABS.map(
       ([key]) =>
-        `<a class="${key === active ? 'on' : ''}" href="/g/${esc(chatId)}?tab=${key}" target="_blank" rel="noopener">${esc(tabLabel(key, lang))}</a>`,
+        `<a class="${key === active ? 'on' : ''}" href="/g/${esc(chatId)}?tab=${key}">${esc(tabLabel(key, lang))}</a>`,
     ).join('')}</nav>
   </aside>
   <main class="content">${body}</main>
