@@ -90,6 +90,7 @@ export const SECTIONS = [
       { path: 'welcome.text', type: 'textarea', label: L('Matn ({user} {group} {count})', 'Текст', 'Text') },
       { path: 'goodbye.on', type: 'bool', label: L('Xayrlashuv', 'Прощание', 'Goodbye') },
       { path: 'goodbye.text', type: 'textarea', label: L('Matn', 'Текст', 'Text') },
+      { path: 'clean.serviceMessages', type: 'bool', label: L('Xizmat xabarlarini o‘chirish', 'Удалять служебные', 'Delete service messages') },
     ],
   },
   {
