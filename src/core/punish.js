@@ -203,7 +203,7 @@ export async function applyAction(chatId, user, rule, { reason = '', by = null, 
       return { action: 'delete' };
     case 'mute':
       if (messageId) await tg.deleteMessage(chatId, messageId).catch(() => {});
-      await mute(chatId, user, seconds, { reason, by, silent: true, via });
+      await mute(chatId, user, seconds, { reason, by, silent: false, via });
       return { action: 'mute', seconds };
     case 'kick':
       if (messageId) await tg.deleteMessage(chatId, messageId).catch(() => {});

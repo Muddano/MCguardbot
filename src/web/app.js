@@ -33,7 +33,12 @@ export function createApp() {
     setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache'),
   }));
 
-  app.get('/healthz', (_req, res) => res.json({ ok: true, ts: now() }));
+  // UptimeRobot va health check monitoring marshrutlari
+  app.get('/healthz', (_req, res) => res.json({ ok: true, ts: now(), status: 'online' }));
+  app.head('/healthz', (_req, res) => res.sendStatus(200));
+  app.get('/ping', (_req, res) => res.send('PONG'));
+  app.head('/ping', (_req, res) => res.sendStatus(200));
+  app.head('/', (_req, res) => res.sendStatus(200));
 
   // ---- Telegram webhook -------------------------------------------------
   app.post(/^\/tg\/[a-z0-9_-]+$/i, (req, res) => {
@@ -88,7 +93,13 @@ export function createApp() {
   };
 
   // ---- pages ------------------------------------------------------------
-  app.get('/', requireUser, async (req, res) => {
+  app.get('/', (req, res, next) => {
+    const ua = String(req.headers['user-agent'] || '').toLowerCase();
+    if (ua.includes('uptimerobot') || ua.includes('pingdom') || ua.includes('monitor') || req.query.ping) {
+      return res.status(200).send('OK');
+    }
+    next();
+  }, requireUser, async (req, res) => {
     const chats = await myManagedChats(req.user.uid);
     const withSettings = [];
     for (const c of chats) withSettings.push({ ...c, settings: await getSettings(c.chat_id) });

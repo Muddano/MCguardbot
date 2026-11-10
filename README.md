@@ -19,8 +19,8 @@ Bot + панель + веб-панель управления. Bot + admin web p
 | Antiflood (tez-tez yozsa — pinhol), raid rejim (bir daqiqada ko'p kirsa — cheklash) | ✅ |
 | Soxta administrator / usernamesiz / bot akkauntlar | ✅ |
 | Firibgar (skam) havolalar — "bepul rank/hold" tipidagi saytlar | ✅ |
-| Foydalanuvchi shikoyati (!report) — 3 marta topsa chora | ✅ |
-| `!warn !mute !kick !ban !unban !lock !purge !filter !rules !lang !settings` | ✅ |
+| Foydalanuvchi shikoyati (`/report` yoki `!report`) — 3 marta topsa chora | ✅ |
+| Buyruqlar **`/` va `!`** ikkala bilan yoziladi: `warn mute kick ban unban unmute lock unlock purge filter rules lang settings` | ✅ |
 | Qoida muharriri: maxsus regex so'zlar + tanlangan chora | ✅ |
 | Log kanali (har bir chora kanalga yoziladi) | ✅ |
 | Veb-panel: 7 bo'lim, 70+ sozlamalar, azolar, ogohlantirishlar, log, tekshiruv, eksport/import | ✅ |

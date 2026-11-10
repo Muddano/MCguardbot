@@ -3,15 +3,17 @@
   "allow": [
     "latin", "latina", "moda", "model", "modern", "taqin", "taqinchilik", "qirq", "yorq",
     "shukr", "shukrona", "shukron", "subhanalloh", "alhamdulillah",
-    "sikka", "sikly", "sifat", "sikloped", "siklopedik",
+    "sikka", "sikly", "sifat", "sikloped", "siklopedik", "sikl", "sanoat",
+    "skill", "skills", "skip", "sketch", "skin", "sklad", "skladlar", "skripka", "skoro", "skoriy", "skaner", "skuter", "skelet",
+    "kotib", "kotiba", "kotlet", "kotleta", "kotirovka", "kotel", "kotelnaya",
     "tuman", "tumanlik", "tumanchilik", "tumanaga",
     "ichki", "ichkim", "ichkar", "ichkilik",
     "tana", "tanador", "tanaazo", "tanaga",
-    "boq", "boqmoq", "boqimaja", "boqish", "boqADI",
+    "boq", "boqmoq", "boqimaja", "boqish", "boqadi",
     "eshak", "eshaklar", "it", "itlar", "mol", "mollar",
     "bosh", "mashaq", "mashq", "musht",
     "tut", "tutash", "tutib", "ushla", "ushlab", "ushlash",
-    "yalmi", "yalmir", "yolgiz", "yolgizlon"
+    "yalmi", "yalmir", "yolgiz", "yolgizlon", "harom"
   ],
   "stems": [
     { "p": "xoroy[a-z]{0,4}|qoroy[a-z]{0,4}", "label": "xo'roy", "severity": 2, "mode": "core" },
@@ -35,7 +37,6 @@
     { "p": "ahm[oa]q[a-z]{0,4}", "label": "ahmoq", "severity": 1, "mode": "core" },
     { "p": "aqsh[iy]?q[a-z]{0,4}", "label": "aqshiq", "severity": 2, "mode": "core" },
     { "p": "(?:q|k)orab[oe]z[a-z]{0,4}", "label": "qoraboz", "severity": 2, "mode": "core" },
-    { "p": "(?:si|sy)(?:k|q|h)(?:aman|asan|adi|ish|ib|ib|gan|moq|uvchi|ing)[a-z]{0,3}", "label": "sikish", "severity": 3, "mode": "core" },
     { "p": "bo['`\u2018]?x(?:im|ing|lari|siz)?[a-z]{0,3}", "label": "bo'x", "severity": 3, "mode": "core" },
 
     { "p": "\\bsolib\\s+(?:ket|bir\\s?ket|qet)\\b", "label": "so'lib ket", "severity": 3, "mode": "word" },
@@ -49,6 +50,61 @@
     { "p": "\\bkalta\\s+(?:qo'y|qoy|kuydir|kuydur)\\b", "label": "kalta qo'y", "severity": 3, "mode": "word" },
     { "p": "\\b(?:allofsat|alopsoht|lo'psat|lopsoat)\\b", "label": "allofsat", "severity": 3, "mode": "word" },
     { "p": "\\b(?:yetimsiz|ota\\s?yoqsiz)\\b", "label": "yetimsiz", "severity": 2, "mode": "word" },
-    { "p": "\\b(?:be'?pi|befa'li|be'razm)\\b", "label": "be'pi", "severity": 1, "mode": "word" }
+    { "p": "\\b(?:be'?pi|befa'li|be'razm)\\b", "label": "be'pi", "severity": 1, "mode": "word" },
+
+    { "p": "\\bsk(?:ay|ey|aman|asan|adi|amiz|asiz|adilar|tir|t|vor|votti|yapti|ib|tim|iw|ish)[a-z]{0,4}\\b", "label": "sikish", "severity": 3, "mode": "word" },
+    { "p": "\\b(?:s[iy1e]k|s[iy1e]q)(?:ay|ey|aman|asan|adi|amiz|asiz|adilar|ti|ib|tir|vor|votti|yapti|il|ilgan|ilsan|ilsin|gim|gisi|ish|iw)?\\b", "label": "sikish", "severity": 3, "mode": "word" },
+
+    { "p": "\\b(?:a|o)m(?:ing|inga|ingga|ingni|im|imiz|i|ini|iga|cha|chik|boz|xo['`]?r|xor|parast|yaloq|voy|dir|dek)\\b", "label": "am", "severity": 3, "mode": "word" },
+    { "p": "\\bamyaloq[a-z]{0,4}\\b", "label": "amyaloq", "severity": 3, "mode": "word" },
+    { "p": "\\bamchik[a-z]{0,4}\\b", "label": "amchik", "severity": 3, "mode": "word" },
+    { "p": "\\bamboz[a-z]{0,4}\\b", "label": "amboz", "severity": 3, "mode": "word" },
+
+    { "p": "\\bkot(?:ing|inga|ingga|ingni|im|i|ini|iga|san|misan|lar|vachcha|boz|parast|berar|cha)\\b", "label": "ko't", "severity": 3, "mode": "word" },
+    { "p": "\\b(?:ko['`]?t|kot)\\b", "label": "ko't", "severity": 2, "mode": "word" },
+    { "p": "\\bkotvachch?[ae][a-z]{0,4}\\b", "label": "ko'tvachcha", "severity": 3, "mode": "word" },
+
+    { "p": "\\b(?:q|k)o['`]?t(?:o|a)(?:q|g|k)[a-z]{0,7}\\b", "label": "qo'toq", "severity": 3, "mode": "word" },
+
+    { "p": "\\bjal{1,2}[aou]p?[bp][a-z]{0,6}\\b", "label": "jalab", "severity": 3, "mode": "word" },
+    { "p": "\\bf[ao]x?h?ish[ae][a-z]{0,5}\\b", "label": "fohisha", "severity": 3, "mode": "word" },
+    { "p": "\\bsh[aou]l[aou]v[a-z]{0,4}\\b", "label": "shalava", "severity": 3, "mode": "word" },
+    { "p": "\\bshlyux[a-z]{0,4}\\b", "label": "shlyuxa", "severity": 3, "mode": "word" },
+    { "p": "\\bshmar[a-z]{0,4}\\b", "label": "shmara", "severity": 3, "mode": "word" },
+
+    { "p": "\\bd[ao]lb[a-z]{2,8}\\b", "label": "dalbayob", "severity": 3, "mode": "word" },
+    { "p": "\\bg[ao]nd[o0u]n[a-z]{0,5}\\b", "label": "gandon", "severity": 3, "mode": "word" },
+    { "p": "\\bpi[d1][aoue]r[a-z]{0,6}\\b", "label": "pidar", "severity": 3, "mode": "word" },
+    { "p": "\\bpedik[a-z]{0,4}\\b", "label": "pedik", "severity": 3, "mode": "word" },
+    { "p": "\\b[hx]ar[ao]m(?:i|ilar|zoda|xo['`]?r|xor|lik|cha)[a-z]{0,3}\\b", "label": "haromi", "severity": 3, "mode": "word" },
+    { "p": "\\bch[o0]['`]?rt[a-z]{0,5}\\b", "label": "chort", "severity": 2, "mode": "word" },
+
+    { "p": "\\bitvachch?[ae][a-z]{0,4}\\b", "label": "itvachcha", "severity": 3, "mode": "word" },
+    { "p": "\\bit\\s+(?:emgan|bolasi|dan tarqagan)\\b", "label": "it emgan", "severity": 3, "mode": "word" },
+    { "p": "\\bqan[jch]i[qk][a-z]{0,4}\\b", "label": "qanjiq", "severity": 3, "mode": "word" },
+    { "p": "\\b[hx]ezalak[a-z]{0,4}\\b", "label": "hezalak", "severity": 3, "mode": "word" },
+    { "p": "\\bxunas[ae][a-z]{0,4}\\b", "label": "xunasa", "severity": 3, "mode": "word" },
+    { "p": "\\bbachab[o0]z[a-z]{0,4}\\b", "label": "bachaboz", "severity": 3, "mode": "word" },
+    { "p": "\\bmaraz[a-z]{0,4}\\b", "label": "maraz", "severity": 2, "mode": "word" },
+    { "p": "\\bpadla[a-z]{0,4}\\b", "label": "padla", "severity": 2, "mode": "word" },
+
+    { "p": "\\b(?:on[ae]ngni|on[ae]ngnikiga|en[ae]ngni|en[ae]gni)\\b", "label": "onangni", "severity": 3, "mode": "word" },
+    { "p": "\\b(?:on[ae]ng|on[ae]ngni|en[ae]ng|en[ae]ngni|en[ae]gni|ot[ae]ng|ot[ae]ngni|op[ae]ng|op[ae]ngni|singling|singlingni)\\s+(?:[a-z]+\\s+)?(?:s[iye]?k|am|ko['`]?t|q[o0]['`]?t|yeb|og['`]?z)[a-z]{0,6}\\b", "label": "oila haqorati", "severity": 3, "mode": "word" },
+    { "p": "\\bpadaring(?:ga|ni)?\\s+(?:lanat|la'nat)\\b", "label": "padaringga lanat", "severity": 2, "mode": "word" },
+
+    { "p": "\\bsuk(?:a|i|u|oy|am|ax|alar|asilar|ayam|asila)\\b", "label": "suka", "severity": 2, "mode": "word" },
+    { "p": "\\bbl[ya][adtz][a-z]{0,4}\\b", "label": "blyad", "severity": 2, "mode": "word" },
+    { "p": "\\b(?:na|po|pa)[hx][uy][a-z]{0,4}\\b", "label": "naxuy", "severity": 3, "mode": "word" },
+    { "p": "\\bz[aey]eb[a-z]{0,5}\\b", "label": "zaebal", "severity": 3, "mode": "word" },
+    { "p": "\\bpizd[a-z]{0,5}\\b", "label": "pizda", "severity": 3, "mode": "word" },
+    { "p": "\\b[hx]uy[a-z]{0,5}\\b", "label": "xuy", "severity": 3, "mode": "word" },
+    { "p": "\\btvar[iu]?[a-z]{0,3}\\b", "label": "tvar", "severity": 2, "mode": "word" },
+    { "p": "\\bchmo[a-z]{0,4}\\b", "label": "chmo", "severity": 2, "mode": "word" },
+
+    { "p": "\\bye(?:p|b)(?:san|misan|siz|gan|ti|tur|tursan|vorsan|votti)\\b", "label": "yebsan", "severity": 2, "mode": "word" },
+
+    { "p": "\\btup[o0]y[a-z]{0,4}\\b", "label": "tupoy", "severity": 1, "mode": "word" },
+    { "p": "\\blo[hx][a-z]{0,4}\\b", "label": "lox", "severity": 1, "mode": "word" },
+    { "p": "\\btentak[a-z]{0,4}\\b", "label": "tentak", "severity": 1, "mode": "word" }
   ]
 }

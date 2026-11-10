@@ -44,17 +44,27 @@ async function main() {
   await retry('setMyCommands', () => tg.setMyCommands(COMMANDS));
 
   const useWebhook = Boolean(env.publicUrl || process.env.RENDER || process.env.FORCE_WEBHOOK);
+  let webhookActive = false;
   if (useWebhook) {
     const url = webhookUrl();
-    const res = await tg.setWebhook(url, env.webhookSecret).catch((e) => {
-      console.error('setWebhook failed', e.message);
-      return false;
-    });
-    if (res) {
-      console.log(`webhook set: ${url}`);
-      stopPoller();
+    if (url.startsWith('https://')) {
+      const res = await tg.setWebhook(url, env.webhookSecret).catch((e) => {
+        console.error('setWebhook failed', e.message);
+        return false;
+      });
+      if (res) {
+        console.log(`webhook set: ${url}`);
+        webhookActive = true;
+        stopPoller();
+      } else {
+        console.warn('Webhook o‘rnatilmadi, long-polling rejimiga o‘tilmoqda...');
+      }
+    } else {
+      console.warn(`Webhook URL https emas (${url}), long-polling rejimiga o‘tilmoqda...`);
     }
-  } else {
+  }
+
+  if (!webhookActive) {
     await tg.deleteWebhook().catch(() => {});
     startPoller().catch((e) => console.error('poller', e?.message ?? e));
   }

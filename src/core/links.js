@@ -2,8 +2,15 @@ import { env } from '../config.js';
 
 /** Base address of the panel: explicit PUBLIC_URL, otherwise the Render host. */
 export function baseUrl() {
-  if (env.publicUrl) return env.publicUrl;
-  if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL.replace(/\/+$/, '');
+  if (env.publicUrl) return env.publicUrl.replace(/\/+$/, '');
+  if (process.env.RENDER_EXTERNAL_URL) {
+    let u = process.env.RENDER_EXTERNAL_URL.replace(/\/+$/, '');
+    if (u.startsWith('http://')) u = 'https://' + u.slice(7);
+    return u;
+  }
+  if (process.env.RENDER_EXTERNAL_HOSTNAME) {
+    return `https://${process.env.RENDER_EXTERNAL_HOSTNAME}`;
+  }
   return `http://localhost:${env.port}`;
 }
 

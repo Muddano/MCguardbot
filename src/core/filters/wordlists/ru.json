@@ -48,6 +48,12 @@
     { "p": "merzav[a-z]{0,3}", "label": "мерзавец", "severity": 2, "mode": "core" },
     { "p": "shal[au]v[a-z]{0,3}", "label": "шалава", "severity": 2, "mode": "core" },
     { "p": "gnid[aou][a-z]{0,3}", "label": "гнида", "severity": 1, "mode": "core" },
-    { "p": "(?:na|za|o)?h[uiy]a[a-z]{0,4}", "label": "хуя", "severity": 2, "mode": "core" }
+    { "p": "(?:na|za|o)?h[uiy]a[a-z]{0,4}", "label": "хуя", "severity": 2, "mode": "core" },
+    { "p": "\\bd[ao]lb[a-z]{2,8}\\b", "label": "долбоёб", "severity": 3, "mode": "word" },
+    { "p": "\\bch[eo0]['`]?rt[a-z]{0,5}\\b", "label": "чёрт", "severity": 2, "mode": "word" },
+    { "p": "\\bpedik[a-z]{0,4}\\b", "label": "педик", "severity": 3, "mode": "word" },
+    { "p": "\\bchmo[a-z]{0,4}\\b", "label": "чмо", "severity": 2, "mode": "word" },
+    { "p": "\\bkurv[a-z]{0,4}\\b", "label": "курва", "severity": 3, "mode": "word" },
+    { "p": "\\b(?:ot)?s[ao]s[a-z]{1,5}\\b", "label": "отсоси", "severity": 2, "mode": "word" }
   ]
 }

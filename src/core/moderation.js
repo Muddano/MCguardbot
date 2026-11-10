@@ -272,7 +272,25 @@ export async function moderateMessage(message, { force = false } = {}) {
 
   const privileged = await memberStatus(message.chat.id, author.id);
   const isStaff = privileged === 'administrator' || privileged === 'creator' || privileged === 'owner';
-  if (isStaff && settings.adminRights?.adminsAreExempt && !force) return null;
+  if (isStaff && settings.adminRights?.adminsAreExempt && !force) {
+    if (violations.some((v) => v.key === 'profanity' || v.key === 'custom')) {
+      const lang = settings.lang;
+      const reasons = violations.map((v) => reasonLabel(lang, v.key)).filter(Boolean);
+      const reason = [...new Set(reasons)].join(', ');
+      const notice = await tg
+        .sendMessage(
+          message.chat.id,
+          `ℹ️ <i>Admin xabarida qoidabuzarlik aniqlandi (${escapeHtml(reason)}), lekin administratorlar himoyalangan (adminsAreExempt: true).</i>`,
+        )
+        .catch(() => {});
+      if (notice?.message_id) {
+        setTimeout(() => {
+          tg.deleteMessage(message.chat.id, notice.message_id).catch(() => {});
+        }, 7000);
+      }
+    }
+    return null;
+  }
 
   const worst = pickWorst(violations);
   if (!worst || (!force && worst.action === 'none' && !worst.delete)) return null;
@@ -285,6 +303,19 @@ export async function moderateMessage(message, { force = false } = {}) {
     await tg.deleteMessage(message.chat.id, message.message_id).catch(() => {});
   }
   if (worst.action === 'none' || worst.action === 'delete' || worst.key === 'gate') {
+    if (worst.action === 'delete' && worst.key !== 'gate') {
+      const notice = await tg
+        .sendMessage(
+          message.chat.id,
+          `${t(lang, 'deleted_reason', { reason: reason || reasonLabel(lang, worst.key) })}\n👤 ${userMention(author)}`,
+        )
+        .catch(() => {});
+      if (notice?.message_id) {
+        setTimeout(() => {
+          tg.deleteMessage(message.chat.id, notice.message_id).catch(() => {});
+        }, 7000);
+      }
+    }
     return { violations, deleted: true, action: worst.action };
   }
 
